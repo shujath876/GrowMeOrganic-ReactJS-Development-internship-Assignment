@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
+import "primereact/resources/themes/lara-light-blue/theme.css"; // Ensure theme is included
+import "primereact/resources/primereact.min.css"; // PrimeReact core styles
 
 type Artwork = {
   id: number;
@@ -42,21 +44,6 @@ export default function ArtTable() {
     fetchData(1);
   }, []);
 
-  const handlePageChange = (e: any) => {
-    fetchData(e.page + 1);}
-
-  const handleSelectionChange = (e: DataTableSelectionChangeEvent) => {
-    const newSelected: Artwork[] = e.value;
-
-    
-    const previousSelections = selectedRows.filter(
-      (row) => !artworks.some((a) => a.id === row.id)
-    );
-
-    
-    setSelectedRows([...previousSelections, ...newSelected]);
-  };
-
   return (
     <div className="card">
       <h2>Fetched Data</h2>
@@ -65,15 +52,23 @@ export default function ArtTable() {
         lazy
         paginator
         rows={pageSize}
-          first={(currentPage - 1) * pageSize}
         totalRecords={totalRecords}
         loading={loading}
-        onPage={handlePageChange}
+        onPage={(e) => fetchData(e.page + 1)}
         dataKey="id"
         selection={artworks.filter((a) =>
           selectedRows.some((s) => s.id === a.id)
         )}
-        onSelectionChange={handleSelectionChange}
+       onSelectionChange={(e: { value: Artwork[] }) => {
+  const newSelected = e.value;
+
+  const previousSelections = selectedRows.filter(
+    (row) => !artworks.some((a) => a.id === row.id)
+  );
+
+  setSelectedRows([...previousSelections, ...newSelected]);
+}}
+        selectionMode="multiple" // Important to avoid TS errors
       >
         <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
         <Column field="title" header="Title" />

@@ -54,7 +54,8 @@ export default function ArtTable() {
         rows={pageSize}
         totalRecords={totalRecords}
         loading={loading}
-        onPage={(e) => fetchData(e.page + 1)}
+        onPage={(e) => fetchData((e?.page ?? 0) + 1)}
+
         dataKey="id"
         selection={artworks.filter((a) =>
           selectedRows.some((s) => s.id === a.id)

@@ -19,18 +19,18 @@ export default function ArtTable() {
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedRows, setSelectedRows] = useState<Artwork[]>([]);
-  const pageSize = 12; 
+  const pageSize = 12;
 
   const fetchData = async (page: number) => {
     setLoading(true);
     try {
-        console.log("Fetching page:", page);
       const response = await axios.get(
         `https://api.artic.edu/api/v1/artworks?page=${page}`
       );
       setArtworks(response.data.data);
       setTotalRecords(response.data.pagination.total);
       setCurrentPage(page);
+      console.log(currentPage)
     } catch (error) {
       console.error("API Error:", error);
     } finally {
@@ -39,8 +39,23 @@ export default function ArtTable() {
   };
 
   useEffect(() => {
-    fetchData(1); 
+    fetchData(1);
   }, []);
+
+  const handlePageChange = (e: any) => {
+    fetchData(e.page + 1);}
+
+  const handleSelectionChange = (e: DataTableSelectionChangeEvent) => {
+    const newSelected: Artwork[] = e.value;
+
+    
+    const previousSelections = selectedRows.filter(
+      (row) => !artworks.some((a) => a.id === row.id)
+    );
+
+    
+    setSelectedRows([...previousSelections, ...newSelected]);
+  };
 
   return (
     <div className="card">
@@ -50,26 +65,17 @@ export default function ArtTable() {
         lazy
         paginator
         rows={pageSize}
+          first={(currentPage - 1) * pageSize}
         totalRecords={totalRecords}
         loading={loading}
-        onPage={(e) => fetchData(e.page + 1)} // PrimeReact page starts at 0
+        onPage={handlePageChange}
         dataKey="id"
         selection={artworks.filter((a) =>
           selectedRows.some((s) => s.id === a.id)
         )}
-        onSelectionChange={(e) => {
-          const newSelected: Artwork[] = e.value;
-
-          // Keep previous page selections that are not on this page
-          const previousSelections = selectedRows.filter(
-            (row) => !artworks.some((a) => a.id === row.id)
-          );
-
-          // Combine with newly selected rows
-          setSelectedRows([...previousSelections, ...newSelected]);
-        }}
- >
-        <Column selectionMode="multiple" headerStyle={{width:'3rem'}}/>
+        onSelectionChange={handleSelectionChange}
+      >
+        <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
         <Column field="title" header="Title" />
         <Column field="place_of_origin" header="Origin" />
         <Column field="artist_display" header="Artist" />
